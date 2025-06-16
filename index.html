@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>구매 물품 관리 앱</title>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background:#f3f4f8;}
+    .container { max-width: 650px; margin: 24px auto; background: #fff; padding: 22px 16px 0 16px; border-radius: 20px; box-shadow:0 2px 20px #0001;}
+    .header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px;}
+    h1 { font-size:2rem; font-weight:700; margin:0; }
+    .share-btn { background:#22c55e; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:1.06rem; font-weight:500; cursor:pointer; box-shadow:0 2px 4px #0001; transition:background .2s;}
+    .share-btn:hover { background: #16a34a; }
+    .dashboard { background:#f3f4f8; border-radius:13px; border:1.5px solid #bbb4; margin-bottom:18px; padding:12px 14px 8px 14px; }
+    .dashboard-title { font-size:1.13rem; font-weight:600; margin-bottom:7px;}
+    .dashboard-list { display:flex; flex-wrap:wrap; gap:10px;}
+    .dash-item { background:#fdf6f8; border:1.5px solid #e11d48; border-radius:8px; padding:7px 13px; font-size:.98rem; margin-bottom:3px;}
+    /* 카테고리 스크롤 */
+    .cat-scroll-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -12px 12px -12px; }
+    .category-nav { display:inline-flex; min-width:100%; gap:6px; padding:5px 12px 4px 12px;}
+    .cat-btn { background:#e0e7ff; border:none; border-radius:7px; padding:7px 14px; font-size:.93rem; cursor:pointer; font-weight:500; min-width: 95px; box-shadow:0 2px 4px #0001; transition:background .12s,color .12s;}
+    .cat-btn.active { background:#6366f1; color:#fff; font-weight:600;}
+    .cat-btn:active { background:#a5b4fc;}
+    .cat-btn.nav { min-width:44px; background:#f1f5f9; color:#64748b;}
+    .cat-btn.nav:disabled { background:#e5e7eb; color:#cbd5e1; cursor:default; }
+    .swipe-area { overflow-x:hidden; }
+    .grid { display:grid; grid-template-columns:1fr; gap:13px;}
+    .item-card { background:#fff; border:1.5px solid #e2e8f0; border-radius:14px; padding: 15px 15px 11px 15px; box-shadow:0 2px 6px #0001; margin-bottom:0; display:flex; align-items:flex-start; gap:13px; transition:border .2s;}
+    .checked { border:2.5px solid #e11d48 !important; background: #fff6f7; }
+    .item-card input[type="checkbox"] { margin-top:2px; transform: scale(1.25); accent-color:#e11d48;}
+    .item-main { flex:1;}
+    .item-main h2 { font-size:1.06rem; font-weight:600; margin:0 0 5px 0;}
+    .item-main .sub { color:#666; font-size:.97rem;}
+    .item-main .cat { color:#b2b2b2; font-size:.91rem; margin-top:2px;}
+    .add-form { margin:30px 0 0 0; border-top:2px solid #ccc; padding-top:18px;}
+    .add-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+    .add-btn, .clear-btn {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 16px 0;
+  letter-spacing: 1px;
+  margin-top: 12px;
+  box-sizing: border-box;
+}
+.add-btn {
+  background: #2563eb;
+  color: #fff;
+}
+.add-btn:hover { background: #1e40af; }
+
+.clear-btn {
+  background: #22c55e;
+  color: #fff;
+  margin-bottom: 10px;
+}
+.clear-btn:hover { background: #16a34a; }
+
+.input-card {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 15px 15px 11px 15px;
+  box-shadow: 0 2px 6px #0001;
+  margin-top: 20px;
+}
+.input-field {
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: 10px 6px;
+  font-size: 1rem;
+  width: 100%;
+  margin-bottom: 12px;
+  outline: none;
+  background: transparent;
+}
+
+    @media (max-width:650px){
+      .container { max-width:96vw; }
+      .add-fields { gap: 8px; }
+      .add-btn, .clear-btn { font-size:1rem; padding:14px 0; }
+      input, select { font-size:1rem; }
+    }
+
+    .inline-dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .clear-inline-btn {
+      background: #fff;
+      border: 1.5px solid #e11d48;
+      color: #e11d48;
+      font-weight: 500;
+      font-size: 0.95rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .share-btn-icon {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 1.15rem;
+      cursor: pointer;
+      box-shadow: 0 2px 4px #0001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 상단: 공유버튼 -->
+    <div class="header">
+      <h1>구매 물품 관리 앱</h1>
+      <button class="share-btn-icon" onclick="shareChecked()"> 공유 </button>
+    </div>
+    <!-- 대시보드(체크된 항목) -->
+    <div class="dashboard" id="dashboard" style="display:none;">
+      <div class="inline-dashboard-header">
+        <div class="dashboard-title">✔️ 체크된 항목 대시보드</div>
+      </div>
+      <div style="margin-top: 8px; text-align: right;">
+        <button class="clear-inline-btn" onclick="clearAll()">전체 해제</button>
+      </div>
+      <div class="dashboard-list" id="dash-list"></div>
+    </div>
+    <!-- 카테고리 네비게이션(스크롤/스와이프) -->
+    <div class="cat-scroll-wrap">
+      <div class="category-nav" id="category-nav"></div>
+    </div>
+    <!-- 현재 카테고리 아이템 목록 -->
+    <div class="swipe-area">
+      <div id="items" class="grid"></div>
+    </div>
+    <!-- 새 항목 추가 -->
+    <form class="add-form" onsubmit="event.preventDefault(); addItem();">
+      <h2 style="font-size:1.15rem; margin:0 0 10px 0;">새 항목 추가</h2>
+      <div class="input-card">
+        <input id="name" name="name" class="input-field" placeholder="이름 (영문)" required autocomplete="off"/>
+        <input id="needs" name="needs" class="input-field" placeholder="필요 수량" type="number" min="1" required autocomplete="off"/>
+        <input id="unit" name="unit" class="input-field" placeholder="단위 (Box 등)" required autocomplete="off"/>
+        <input id="korean" name="korean" class="input-field" placeholder="이름 (한글)" required autocomplete="off"/>
+        <select id="add-category" name="category" class="input-field" required>
+          <option>Baked Goods & Grains</option>
+          <option>Condiments & Extracts</option>
+          <option>Dairy & Alternatives</option>
+          <option>Fruits</option>
+          <option>Leafy Greens & Seeds</option>
+          <option>Meat & Protein</option>
+          <option>Oils & Vinegars</option>
+          <option>Spices & Seasonings</option>
+          <option>Spreads & Sweeteners</option>
+          <option>Vegetables & Herbs</option>
+        </select>
+      </div>
+      <button class="add-btn" type="submit">추가</button>
+    </form>
+  </div>
+
+  <script>
+    let items = [
+  { code: "BG001", category: "Baked Goods & Grains", name: "Ciabatta Bread", needs: 8, unit: "Piece", korean: "치아바타빵" },
+  { code: "BG002", category: "Baked Goods & Grains", name: "Croissant", needs: 3, unit: "Box", korean: "크로와상" },
+  { code: "BG003", category: "Baked Goods & Grains", name: "Flour", needs: 1, unit: "Box", korean: "밀가루" },
+  { code: "BG004", category: "Baked Goods & Grains", name: "Gluten-Free Bread", needs: 2, unit: "Pack", korean: "글루텐프리빵" },
+  { code: "BG005", category: "Baked Goods & Grains", name: "Mini Croissant", needs: 3, unit: "Box", korean: "미니크로와상" },
+  { code: "BG006", category: "Baked Goods & Grains", name: "New York Roll", needs: 3, unit: "Box", korean: "뉴욕롤" },
+  { code: "BG007", category: "Baked Goods & Grains", name: "Oatmeal", needs: 1, unit: "Box", korean: "오트밀" },
+  { code: "CE001", category: "Condiments & Extracts", name: "Passion Fruit Concentrate", needs: 1, unit: "Pack", korean: "패션프루트농축액" },
+  { code: "DA001", category: "Dairy & Alternatives", name: "Butter", needs: 2, unit: "Box", korean: "버터" },
+  { code: "DA002", category: "Dairy & Alternatives", name: "Butter Cheese", needs: 6, unit: "Pack", korean: "버터치즈" },
+  { code: "DA003", category: "Dairy & Alternatives", name: "Greek Yogurt", needs: 2, unit: "Container", korean: "그릭요거트" },
+  { code: "DA004", category: "Dairy & Alternatives", name: "Milk", needs: 36, unit: "Piece", korean: "우유" },
+  { code: "DA005", category: "Dairy & Alternatives", name: "Oat Milk", needs: 12, unit: "Pack", korean: "오트밀크" },
+  { code: "DA006", category: "Dairy & Alternatives", name: "Whipping Cream", needs: 3, unit: "Bottle", korean: "휘핑크림" },
+  { code: "FR001", category: "Fruits", name: "Apple", needs: 12, unit: "Piece", korean: "사과" },
+  { code: "FR002", category: "Fruits", name: "Banana", needs: 3, unit: "Kg", korean: "바나나" },
+  { code: "FR003", category: "Fruits", name: "Blueberries", needs: 8, unit: "Pack", korean: "블루베리" },
+  { code: "FR004", category: "Fruits", name: "Dragon Fruit", needs: 1, unit: "Piece", korean: "용과" },
+  { code: "FR005", category: "Fruits", name: "Mango", needs: 5, unit: "Piece", korean: "망고" },
+  { code: "FR006", category: "Fruits", name: "Orange", needs: 2, unit: "Box", korean: "오렌지" },
+  { code: "FR007", category: "Fruits", name: "Pomegranate", needs: 4, unit: "Piece", korean: "석류" },
+  { code: "FR008", category: "Fruits", name: "Strawberries", needs: 6, unit: "Pack", korean: "딸기" },
+  { code: "LG001", category: "Leafy Greens & Seeds", name: "Arugula (Rocket)", needs: 8, unit: "Pack", korean: "루꼴라(로켓)" },
+  { code: "LG002", category: "Leafy Greens & Seeds", name: "Avocado", needs: 3, unit: "Box", korean: "아보카도" },
+  { code: "LG003", category: "Leafy Greens & Seeds", name: "Pumpkin Seeds", needs: 5, unit: "Pack", korean: "호박씨" },
+  { code: "LG004", category: "Leafy Greens & Seeds", name: "Sunflower Seeds", needs: 5, unit: "Pack", korean: "해바라기씨" },
+  { code: "MP001", category: "Meat & Protein", name: "Bacon", needs: 3, unit: "Package", korean: "베이컨" },
+  { code: "MP002", category: "Meat & Protein", name: "Beef", needs: 1, unit: "Pack(ca. 3 kg)", korean: "소고기" },
+  { code: "MP003", category: "Meat & Protein", name: "Eggs", needs: 300, unit: "Piece", korean: "계란" },
+  { code: "MP004", category: "Meat & Protein", name: "Mini Sausages", needs: 4, unit: "Pack", korean: "미니소시지" },
+  { code: "MP005", category: "Meat & Protein", name: "Pork Ham", needs: 5, unit: "Pack", korean: "돼지고기허벅다리햄" },
+  { code: "MP006", category: "Meat & Protein", name: "Turkey Ham", needs: 5, unit: "Pack", korean: "칠면조햄" },
+  { code: "MP007", category: "Meat & Protein", name: "Wild Salmon", needs: 5, unit: "Pack", korean: "자연산연어" },
+  { code: "OV001", category: "Oils & Vinegars", name: "Balsamico", needs: 2, unit: "Bottle", korean: "발사믹" },
+  { code: "OV002", category: "Oils & Vinegars", name: "Olive Oil", needs: 1, unit: "Container", korean: "올리브오일" },
+  { code: "OV003", category: "Oils & Vinegars", name: "Red Wine Vinegar", needs: 3, unit: "Bottle", korean: "레드와인식초" },
+  { code: "OV004", category: "Oils & Vinegars", name: "Vinegar", needs: 3, unit: "Bottle", korean: "식초" },
+  { code: "OV005", category: "Oils & Vinegars", name: "Wine Vinegar", needs: 5, unit: "Bottle", korean: "와인식초" },
+  { code: "SP001", category: "Spices & Seasonings", name: "Alpine Salt", needs: 1, unit: "Container", korean: "알파인소금" },
+  { code: "SP002", category: "Spices & Seasonings", name: "Brown Sugar", needs: 1, unit: "Box", korean: "갈색설탕" },
+  { code: "SP003", category: "Spices & Seasonings", name: "Chili Powder", needs: 1, unit: "Bottle", korean: "칠리가루" },
+  { code: "SP004", category: "Spices & Seasonings", name: "Cumin Powder", needs: 1, unit: "Bottle", korean: "커민가루" },
+  { code: "SP005", category: "Spices & Seasonings", name: "Ground Cloves", needs: 1, unit: "Bottle", korean: "정향가루" },
+  { code: "SP006", category: "Spices & Seasonings", name: "Ground Pepper", needs: 1, unit: "Bottle", korean: "후추가루" },
+  { code: "SP007", category: "Spices & Seasonings", name: "Oregano", needs: 1, unit: "Bottle", korean: "오레가노" },
+  { code: "SP008", category: "Spices & Seasonings", name: "Paprika Powder", needs: 1, unit: "Bottle", korean: "파프리카가루" },
+  { code: "SP012", category: "Spices & Seasonings", name: "Hash Brown Seasoning", needs: 1, unit: "Bottle", korean: "해쉬브라운시즈닝" },
+  { code: "SP009", category: "Spices & Seasonings", name: "Sea Salt", needs: 1, unit: "Container", korean: "바다소금" },
+  { code: "SP010", category: "Spices & Seasonings", name: "Sugar", needs: 1, unit: "Box", korean: "설탕" },
+  { code: "SP011", category: "Spices & Seasonings", name: "Vanilla Paste", needs: 5, unit: "Tube", korean: "바닐라페이스트" },
+  { code: "SS001", category: "Spreads & Sweeteners", name: "Honey", needs: 5, unit: "Tube", korean: "꿀" },
+  { code: "SS002", category: "Spreads & Sweeteners", name: "Maple Syrup", needs: 10, unit: "Jar", korean: "메이플시럽" },
+  { code: "SS003", category: "Spreads & Sweeteners", name: "Nutella", needs: 3, unit: "Jar", korean: "누텔라" },
+  { code: "SS004", category: "Spreads & Sweeteners", name: "Strawberry Jam", needs: 6, unit: "Jar", korean: "딸기잼" },
+  { code: "VH001", category: "Vegetables & Herbs", name: "Baby Carrots", needs: 4, unit: "Pack", korean: "베이비당근" },
+  { code: "VH002", category: "Vegetables & Herbs", name: "Cherry Tomatoes", needs: 1, unit: "Box", korean: "체리토마토" },
+  { code: "VH003", category: "Vegetables & Herbs", name: "Chives", needs: 1, unit: "Pack", korean: "차이브" },
+  { code: "VH004", category: "Vegetables & Herbs", name: "Cilantro", needs: 3, unit: "Pack", korean: "고수" },
+  { code: "VH005", category: "Vegetables & Herbs", name: "Cucumber", needs: 4, unit: "Piece", korean: "오이" },
+  { code: "VH006", category: "Vegetables & Herbs", name: "Garlic", needs: 1, unit: "Kg", korean: "마늘" },
+  { code: "VH007", category: "Vegetables & Herbs", name: "Italian Parsley", needs: 1, unit: "Kg", korean: "이탈리안파슬리" },
+  { code: "VH008", category: "Vegetables & Herbs", name: "Mint", needs: 1, unit: "Pack", korean: "민트" },
+  { code: "VH009", category: "Vegetables & Herbs", name: "Mushrooms", needs: 2, unit: "Kg", korean: "버섯" },
+  { code: "VH010", category: "Vegetables & Herbs", name: "Onion", needs: 1, unit: "Kg", korean: "양파" },
+  { code: "VH011", category: "Vegetables & Herbs", name: "Potatoes", needs: 5, unit: "Kg", korean: "감자" },
+  { code: "VH012", category: "Vegetables & Herbs", name: "Red Bell Pepper", needs: 5, unit: "Kg", korean: "빨간파프리카" },
+  { code: "VH013", category: "Vegetables & Herbs", name: "Carrtot", needs: 1, unit: "Kg", korean: "당근" },
+  { code: "VH014", category: "Vegetables & Herbs", name: "Spinich", needs: 5, unit: "Kg", korean: "시금치" },
+  { code: "VH015", category: "Vegetables & Herbs", name: "Baby Spinich", needs: 5, unit: "Pack", korean: "베이비시금치" }
+];
+    let checked = {};
+    let currentCategory = "";
+
+    const CODE_PREFIX = {
+      "Baked Goods & Grains": "BG",
+      "Condiments & Extracts": "CE",
+      "Dairy & Alternatives": "DA",
+      "Fruits": "FR",
+      "Leafy Greens & Seeds": "LG",
+      "Meat & Protein": "MP",
+      "Oils & Vinegars": "OV",
+      "Spices & Seasonings": "SP",
+      "Spreads & Sweeteners": "SS",
+      "Vegetables & Herbs": "VH"
+    };
+
+    function uniqueCategories() {
+      return Array.from(new Set(
+        items.map(i => i.category)
+        .concat(Object.keys(CODE_PREFIX))
+      ));
+    }
+    
+    function render() {
+      const cats = uniqueCategories().filter(Boolean);
+      if (!currentCategory || !cats.includes(currentCategory)) currentCategory = cats[0];
+
+      // 카테고리 버튼 바 렌더링
+      const nav = document.getElementById("category-nav");
+      nav.innerHTML = `
+        <button class="cat-btn nav" onclick="prevCat()">←</button>
+        ${cats.map(cat =>
+          `<button class="cat-btn${cat === currentCategory ? " active" : ""}" onclick="selectCat('${cat}')">${cat}</button>`
+        ).join('')}
+        <button class="cat-btn nav" onclick="nextCat()">→</button>
+      `;
+
+      const thisItems = items.filter(i => i.category === currentCategory);
+      const sorted = thisItems;  // 체크된 항목도 섞지 않고 그대로 출력
+
+      document.getElementById('items').innerHTML = sorted.length === 0
+        ? `<div style="color:#bbb; text-align:center; margin:2em 0;">항목 없음</div>`
+        : sorted.map(item => `
+          <div class="item-card${checked[item.code] ? ' checked' : ''}">
+            <input type="checkbox" ${checked[item.code] ? "checked" : ""} onchange="toggle('${item.code}')" aria-label="항목 체크"/>
+            <div class="item-main">
+              <h2>${item.korean} (${item.name})</h2>
+              <div class="sub">
+                필요 수량: <input type="number" min="0" value="${item.needs}" style="width:44px"
+                onchange="updateNeeds('${item.code}', this.value)" aria-label="필요 수량" /> ${item.unit}
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+      const checkedAll = items.filter(i => checked[i.code]);
+      document.getElementById('dashboard').style.display = checkedAll.length ? "" : "none";
+      document.getElementById('dash-list').innerHTML = checkedAll.length === 0
+        ? ""
+        : checkedAll.map(item =>
+            `<div class="dash-item">${item.korean} (${item.name})<br><span style="color:#555;font-size:.94em;">${item.needs} ${item.unit}</span></div>`
+        ).join('');
+
+      const sel = document.getElementById('add-category');
+      sel.innerHTML = cats.map(cat =>
+        `<option value="${cat}" ${cat === currentCategory ? "selected" : ""}>${cat}</option>`
+      ).join('');
+    }
+
+    function toggle(code) {
+      checked[code] = !checked[code];
+      render();
+    }
+    function updateNeeds(code, val) {
+      const item = items.find(i => i.code === code);
+      if (item) item.needs = Number(val);
+    }
+    function addItem() {
+      const name = document.getElementById('name').value.trim();
+      const needs = Number(document.getElementById('needs').value);
+      const unit = document.getElementById('unit').value.trim();
+      const korean = document.getElementById('korean').value.trim();
+      const selCat = document.getElementById('add-category').value.trim();
+      if (!name || !needs || !unit || !selCat) return;
+
+      let prefix = CODE_PREFIX[selCat];
+      if (!prefix) {
+        prefix = selCat.replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase() || "UN";
+        CODE_PREFIX[selCat] = prefix;
+      }
+      let maxNum = 0;
+      items.forEach(i => {
+        if (i.code.startsWith(prefix)) {
+          const num = Number(i.code.slice(prefix.length));
+          if (!isNaN(num) && num > maxNum) maxNum = num;
+        }
+      });
+      const newCode = prefix + (maxNum+1).toString().padStart(3,'0');
+
+      items.push({ code: newCode, name, needs, unit, korean, category: selCat });
+      document.getElementById('name').value = "";
+      document.getElementById('needs').value = "";
+      document.getElementById('unit').value = "";
+      document.getElementById('korean').value = "";
+      render();
+    }
+    function toggleAll() {
+      const allChecked = Object.keys(checked).length === items.length;
+      if (allChecked) checked = {};
+      else { checked = {}; items.forEach(i => checked[i.code] = true); }
+      render();
+    }
+    async function shareChecked() {
+      const selected = items.filter(item => checked[item.code]);
+      if (!selected.length) {
+        alert("공유할 체크된 항목이 없습니다!");
+        return;
+      }
+      const intro = "Hi! 😊 Here’s the updated list of items we need:\n\n";
+      const outro = "\n\nLet me know if you need any clarification or adjustments. Thanks! 🙌";
+      const text =
+        intro +
+        selected.map(item =>
+          `${item.name} - ${item.needs} ${item.unit}`
+        ).join('\n') +
+        outro;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: "Shopping List", text });
+          return;
+        } catch (e) {}
+      }
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(text);
+          alert("클립보드에 복사되었습니다!\n\n" + text);
+          return;
+        } catch (e) {}
+      }
+      prompt("텍스트 복사가 지원되지 않습니다. 수동 복사해 주세요.", text);
+    }
+    function selectCat(cat) {
+      currentCategory = cat;
+      render();
+    }
+    function prevCat() {
+      const cats = uniqueCategories();
+      let idx = cats.indexOf(currentCategory);
+      if (idx > 0) currentCategory = cats[idx - 1];
+      else currentCategory = cats[cats.length - 1];
+      render();
+    }
+    function nextCat() {
+      const cats = uniqueCategories();
+      let idx = cats.indexOf(currentCategory);
+      if (idx < cats.length - 1) currentCategory = cats[idx + 1];
+      else currentCategory = cats[0];
+      render();
+    }
+    function clearAll() {
+       checked = {};
+       render();
+    }
+    // 모바일 스와이프 지원
+    let startX = null;
+    window.onload = function(){
+      const swipeArea = document.querySelector('.swipe-area');
+      swipeArea.addEventListener('touchstart', function(e){
+        startX = e.changedTouches[0].clientX;
+      });
+      swipeArea.addEventListener('touchend', function(e){
+        if (startX === null) return;
+        let dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 50) {
+          if (dx < 0) nextCat();
+          else prevCat();
+        }
+        startX = null;
+      });
+      render();
+    };
+    </script>
+  </body>
+  </html>  
