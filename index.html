@@ -11,10 +11,10 @@
     h1 { font-size:2rem; font-weight:700; margin:0; }
     .share-btn { background:#22c55e; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:1.06rem; font-weight:500; cursor:pointer; box-shadow:0 2px 4px #0001; transition:background .2s;}
     .share-btn:hover { background: #16a34a; }
-    .dashboard { background:#f3f4f8; border-radius:13px; border:1.5px solid #bbb4; margin-bottom:18px; padding:12px 14px 8px 14px; }
-    .dashboard-title { font-size:1.13rem; font-weight:600; margin-bottom:7px;}
-    .dashboard-list { display:flex; flex-wrap:wrap; gap:10px;}
-    .dash-item { background:#fdf6f8; border:1.5px solid #e11d48; border-radius:8px; padding:7px 13px; font-size:.98rem; margin-bottom:3px;}
+    .dashboard {background: #f3f4f8;border-radius: 13px;border: 1.5px solid #bbb4;margin-bottom: 18px;padding: 12px 14px 8px 14px;/* 대시보드 높이 고정 및 스크롤 */min-height: 225px;   /* 약 5줄 정도 */max-height: 225px;overflow-y: auto;}
+    .dashboard-list {display: block;margin-top: 6px;/* 스크롤 되는 영역이 확실히 분리되게 */overflow-y: auto;max-height: 195px;}
+    .dash-item {display: block;/* 한 줄에 하나씩 */background: none;border: none;border-radius: 0;padding: 3px 0 3px 0;margin: 0;font-size: 1rem;color: #e11d48;line-height: 1.85;font-weight: 500;border-bottom: 1px solid #f3c8c8;}
+    .dash-item:last-child {border-bottom: none;}
     /* 카테고리 스크롤 */
     .cat-scroll-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -12px 12px -12px; }
     .category-nav { display:inline-flex; min-width:100%; gap:6px; padding:5px 12px 4px 12px;}
@@ -129,11 +129,9 @@
       <button class="share-btn-icon" onclick="shareChecked()"> 공유 </button>
     </div>
     <!-- 대시보드(체크된 항목) -->
-    <div class="dashboard" id="dashboard" style="display:none;">
+    <div class="dashboard" id="dashboard">
       <div class="inline-dashboard-header">
         <div class="dashboard-title">✔️ 체크된 항목 대시보드</div>
-      </div>
-      <div style="margin-top: 8px; text-align: right;">
         <button class="clear-inline-btn" onclick="clearAll()">전체 해제</button>
       </div>
       <div class="dashboard-list" id="dash-list"></div>
@@ -299,12 +297,12 @@
         `).join('');
 
       const checkedAll = items.filter(i => checked[i.code]);
-      document.getElementById('dashboard').style.display = checkedAll.length ? "" : "none";
-      document.getElementById('dash-list').innerHTML = checkedAll.length === 0
-        ? ""
-        : checkedAll.map(item =>
-            `<div class="dash-item">${item.korean} (${item.name})<br><span style="color:#555;font-size:.94em;">${item.needs} ${item.unit}</span></div>`
-        ).join('');
+
+     document.getElementById('dash-list').innerHTML = checkedAll.length === 0
+  ? "<span style='color:#bbb;'>선택된 물품이 없습니다.</span>"
+  : checkedAll.map(item =>
+      `<span class="dash-item">${item.korean} (${item.name}) - ${item.needs} ${item.unit}</span>`
+    ).join('');
 
       const sel = document.getElementById('add-category');
       sel.innerHTML = cats.map(cat =>
